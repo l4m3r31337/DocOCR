@@ -28,10 +28,10 @@ class DocumentClassifier:
         
         logger.info("Классификатор документов инициализирован")
 
-    def classify(self, extracted_text: str) -> Tuple[str, float]:
+    def classify(self, extracted_text: str) -> str:
         if not extracted_text:
             logger.warning("Получен пустой текст для классификации")
-            return "НЕИЗВЕСТНО", 0.0
+            return "НЕИЗВЕСТНО"
 
         text_lower = extracted_text.lower()
         logger.debug(f"Анализируем текст: {text_lower[:200]}...")
@@ -45,26 +45,23 @@ class DocumentClassifier:
                     found_types.append(doc_type)
                     break
 
-        if len(found_types) == 1:
+        if not found_types:
+            logger.warning("Не найдено ключевых слов для известных типов")
+            return "НЕИЗВЕСТНО"
+
+        if "УПД" in found_types and "СЧЕТ_ФАКТУРА" in found_types:
+            logger.info("УПД имеет приоритет над счетом-фактурой")
+            return "УПД"
+        elif "ТОРГ-12" in found_types and "СЧЕТ_ФАКТУРА" in found_types:
+            logger.info("ТОРГ-12 имеет приоритет")
+            return "ТОРГ-12"
+        elif len(found_types) == 1:
             doc_type = found_types[0]
             logger.info(f"Документ классифицирован как: {doc_type}")
-            return doc_type, 95.0
-        elif len(found_types) > 1:
-            types_str = ", ".join(found_types)
-            logger.warning(f"Неоднозначность: найдены типы: {types_str}")
-
-            if "УПД" in found_types and "СЧЕТ_ФАКТУРА" in found_types:
-                logger.info("УПД имеет приоритет над счетом-фактурой")
-                return "УПД", 90.0
-            elif "ТОРГ-12" in found_types and "СЧЕТ_ФАКТУРА" in found_types:
-                logger.info("ТОРГ-12 имеет приоритет")
-                return "ТОРГ-12", 90.0
-            else:
-                logger.info(f"Возвращаем первый тип: {found_types[0]}")
-                return found_types[0], 85.0
+            return doc_type
         else:
-            logger.warning("Не найдено ключевых слов для известных типов")
-            return "НЕИЗВЕСТНО", 0.0
+            logger.info(f"Неоднозначность, возвращаем первый тип: {found_types[0]}")
+            return found_types[0]
 
     def get_supported_types(self) -> list:
         return list(self.unique_keywords.keys())
