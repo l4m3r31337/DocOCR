@@ -32,19 +32,19 @@ class DocumentClassifier:
         if not extracted_text:
             logger.warning("Получен пустой текст для классификации")
             return "НЕИЗВЕСТНО", 0.0
-        
+
         text_lower = extracted_text.lower()
         logger.debug(f"Анализируем текст: {text_lower[:200]}...")
-        
+
         found_types = []
-        
+
         for doc_type, keywords in self.unique_keywords.items():
             for keyword in keywords:
                 if keyword in text_lower:
                     logger.info(f"Найдено ключевое слово для {doc_type}: '{keyword}'")
                     found_types.append(doc_type)
                     break
-        
+
         if len(found_types) == 1:
             doc_type = found_types[0]
             logger.info(f"Документ классифицирован как: {doc_type}")
@@ -52,7 +52,16 @@ class DocumentClassifier:
         elif len(found_types) > 1:
             types_str = ", ".join(found_types)
             logger.warning(f"Неоднозначность: найдены типы: {types_str}")
-            return "НЕИЗВЕСТНО", 0.0
+
+            if "УПД" in found_types and "СЧЕТ_ФАКТУРА" in found_types:
+                logger.info("УПД имеет приоритет над счетом-фактурой")
+                return "УПД", 90.0
+            elif "ТОРГ-12" in found_types and "СЧЕТ_ФАКТУРА" in found_types:
+                logger.info("ТОРГ-12 имеет приоритет")
+                return "ТОРГ-12", 90.0
+            else:
+                logger.info(f"Возвращаем первый тип: {found_types[0]}")
+                return found_types[0], 85.0
         else:
             logger.warning("Не найдено ключевых слов для известных типов")
             return "НЕИЗВЕСТНО", 0.0
