@@ -12,7 +12,16 @@ def extract_text(file_path):
 
     if file_path.lower().endswith('.pdf'):
         images = convert_from_path(file_path, poppler_path=poppler_path)
-        text = "\n".join(pytesseract.image_to_string(img, lang='rus+eng') for img in images)
+        custom_config = (
+            "--oem 3 "
+            "--psm 1 "
+            "-c textord_tabfind_find_tables=1 "
+            "-c load_system_dawg=0 "
+            "-c load_freq_dawg=0 "
+            "-c classifiy_bln_numeric_mode=1 "
+        )
+
+        text = "\n".join(pytesseract.image_to_string(img, config=custom_config, lang='rus+eng') for img in images)
     else:
         text = pytesseract.image_to_string(Image.open(file_path), lang='rus+eng')
 
