@@ -1,0 +1,14 @@
+{
+  "document_type": "ТОРГ-12",
+  "header": {
+    "doc_date": "24.12.2014",
+    "supplier": "ООО Малако Беларус! по ОКПО"
+  },
+  "table_data": [],
+  "totals": {},
+  "metadata": {
+    "parsing_date": "2025-11-26T17:55:39.985005",
+    "text_length": 3252,
+    "confidence": "medium"
+  }
+}

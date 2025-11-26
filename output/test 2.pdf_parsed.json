@@ -1,0 +1,14 @@
+{
+  "document_type": "ТОРГ-12",
+  "header": {
+    "doc_date": "10.01.2015",
+    "supplier": "044525225, к/с 30101810400000000225"
+  },
+  "table_data": [],
+  "totals": {},
+  "metadata": {
+    "parsing_date": "2025-11-26T17:55:03.067698",
+    "text_length": 3323,
+    "confidence": "medium"
+  }
+}

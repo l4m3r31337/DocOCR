@@ -11,60 +11,53 @@ from data_parser import parse_document_data, save_to_json
 
 
 def test_classifier():
-    print("🧪 ТЕСТИРУЕМ СВЯЗКУ OCR + КЛАССИФИКАТОР + ПАРСИНГ")
     print("=" * 60)
 
-    # Ищем все PDF файлы в tests
     tests_dir = "../tests"
     if not os.path.exists(tests_dir):
-        print(f"❌ Папка tests не найдена: {tests_dir}")
+        print(f"Папка не найдена: {tests_dir}")
         return
 
     pdf_files = [os.path.join(tests_dir, f) for f in os.listdir(tests_dir) if f.endswith('.pdf')]
 
     if not pdf_files:
-        print("❌ PDF файлы не найдены в папке tests")
+        print("PDF файлы не найдены")
         return
 
-    print(f"📁 Найдено файлов для обработки: {len(pdf_files)}")
+    print(f"Файлов для обработки: {len(pdf_files)}")
 
     # Создаем папку для результатов
     os.makedirs("../output", exist_ok=True)
 
     for file_path in pdf_files:
         if not os.path.exists(file_path):
-            print(f"❌ Файл не найден: {file_path}")
+            print(f"Файл не найден: {file_path}")
             continue
 
         try:
             filename = os.path.basename(file_path)
-            print(f"\n📁 Обрабатываем: {filename}")
+            print(f"\nОбрабатываем: {filename}")
 
-            # 1. OCR извлекает текст
-            print("🔍 Извлекаем текст OCR...")
+            
+            print("текст OCR...")
             extracted_text = extract_text(file_path)
 
             if not extracted_text:
-                print("❌ OCR не смог извлечь текст")
+                print("OCR не смог извлечь текст")
                 continue
 
-            print(f"📄 Извлечено символов: {len(extracted_text)}")
 
-            # 2. Классификатор определяет тип
-            print("🎯 Классифицируем документ...")
+            
             doc_type = classify_document(extracted_text)
-            print(f"📊 Тип документа: {doc_type}")
+            print(f"Тип документа: {doc_type}")
 
-            # 3. Парсим данные
-            print("🔧 Парсим структурированные данные...")
+            
             parsed_data = parse_document_data(extracted_text, doc_type)
 
-            # 4. Сохраняем в JSON
             output_filename = f"../output/{filename}_parsed.json"
             save_to_json(parsed_data, output_filename)
 
-            # 5. Выводим результаты
-            print("📋 РЕЗУЛЬТАТЫ ПАРСИНГА:")
+            print("РЕЗУЛЬТАТЫ ПАРСИНГА:")
             print(f"   • Тип документа: {parsed_data['document_type']}")
             print(f"   • Номер документа: {parsed_data['header'].get('doc_number', 'не найден')}")
             print(f"   • Дата: {parsed_data['header'].get('doc_date', 'не найдена')}")
@@ -82,7 +75,7 @@ def test_classifier():
                 print(f"   • Пример товара: {first_item.get('product_name', 'не найден')}")
 
             # 6. Покажем краткое содержимое JSON
-            print("📄 Краткое содержимое JSON:")
+            print("Краткое содержимое JSON:")
             print("-" * 40)
             json_preview = json.dumps(parsed_data, ensure_ascii=False, indent=2)
             # Покажем только первые 400 символов чтобы не засорять вывод
@@ -93,11 +86,11 @@ def test_classifier():
             print("-" * 40)
 
         except Exception as e:
-            print(f"❌ Ошибка при обработке {file_path}: {e}")
+            print(f"Ошибка при обработке {file_path}: {e}")
 
-    print(f"\n🎉 ОБРАБОТКА ЗАВЕРШЕНА!")
-    print(f"📂 Результаты сохранены в папку: ../output/")
-    print(f"📊 Обработано файлов: {len([f for f in os.listdir('../output') if f.endswith('.json')])}")
+    print(f"\nОБРАБОТКА ЗАВЕРШЕНА!")
+    print(f"Результаты сохранены в папку: ../output/")
+    print(f"Обработано файлов: {len([f for f in os.listdir('../output') if f.endswith('.json')])}")
 
 
 if __name__ == "__main__":

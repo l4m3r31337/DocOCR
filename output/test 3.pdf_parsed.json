@@ -1,0 +1,17 @@
+{
+  "document_type": "УПД",
+  "header": {
+    "doc_date": "26 декабря 2011",
+    "seller": "ООО \"База \"Продукты\" (2)",
+    "inn": "7799555110",
+    "kpp": "779901001",
+    "buyer": "ООО \"Торговый дом \"Комплексный\" (6)"
+  },
+  "table_data": [],
+  "totals": {},
+  "metadata": {
+    "parsing_date": "2025-11-26T17:55:13.747885",
+    "text_length": 5263,
+    "confidence": "medium"
+  }
+}
