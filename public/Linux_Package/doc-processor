@@ -30,10 +30,4 @@ try:
     sys.exit(main())
 except ImportError as e:
     print(f"  Ошибка импорта: {e}")
-    print("\nПроверьте:")
-    print(f"1. Существует ли папка: {os.path.exists('/opt/dococr/src')}")
-    print(f"2. Установлены ли пакеты в venv:")
-    print(f"   source {VENV_PATH}/bin/activate")
-    print(f"   pip list | grep pdf2image")
-    print(f"3. Проверьте __init__.py: {os.path.exists('/opt/dococr/src/__init__.py')}")
     sys.exit(1)
