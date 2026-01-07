@@ -1,0 +1,29 @@
+{
+  "document_type": "УПД",
+  "header": {
+    "doc_number": "30248",
+    "doc_date": "20.12.2014",
+    "seller": "Адрес:",
+    "buyer": "и его адрес:"
+  },
+  "table_data": [
+    {
+      "product_name": "Универсальный передаточный документ",
+      "quantity": 2016.0,
+      "price": 2.0,
+      "total": 4032.0,
+      "row_number": 1
+    }
+  ],
+  "totals": {
+    "total_amount": 4032.0
+  },
+  "validation": {
+    "errors": [],
+    "warnings": [],
+    "is_valid": true
+  },
+  "metadata": {
+    "parsed_at": "2026-01-07T13:09:31.443877"
+  }
+}

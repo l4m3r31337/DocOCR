@@ -1,0 +1,43 @@
+{
+  "document_type": "УПД",
+  "header": {
+    "doc_number": "1",
+    "doc_date": "10.01.2015",
+    "seller": "ООО \"База \"Продукты\" (2)",
+    "buyer": "и его адрес: ООО \"Торговый дом \"Комплексный\", 121170, Москва г, Кутузовский пр-кт, дом № 1/7, строение 2 (4)"
+  },
+  "table_data": [
+    {
+      "product_name": "передаточный Исправление от",
+      "quantity": 2011.0,
+      "price": 1137.0,
+      "total": 2286507.0,
+      "row_number": 1
+    },
+    {
+      "product_name": "Валюта наименование, код Российский рубль,",
+      "quantity": 643.0,
+      "price": 7.0,
+      "total": 4501.0,
+      "row_number": 2
+    },
+    {
+      "product_name": "Универсальный передаточный документ",
+      "quantity": 2016.0,
+      "price": 2.0,
+      "total": 4032.0,
+      "row_number": 3
+    }
+  ],
+  "totals": {
+    "total_amount": 2295040.0
+  },
+  "validation": {
+    "errors": [],
+    "warnings": [],
+    "is_valid": true
+  },
+  "metadata": {
+    "parsed_at": "2026-01-07T13:09:21.419213"
+  }
+}

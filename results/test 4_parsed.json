@@ -1,0 +1,43 @@
+{
+  "document_type": "СЧЕТ_ФАКТУРА",
+  "header": {
+    "doc_number": "30248",
+    "doc_date": "10.12.2016",
+    "seller": "ООО \"Конфетпром\"",
+    "buyer": "и его адрес: ООО \"Торговый дом \"Комплексный'"
+  },
+  "table_data": [
+    {
+      "product_name": "Пирог тирольский с черникой",
+      "quantity": 68.0,
+      "price": 745.56,
+      "total": 50698.08,
+      "row_number": 1
+    },
+    {
+      "product_name": "Пирог тирольский с вишней",
+      "quantity": 10.0,
+      "price": 720.22,
+      "total": 7202.2,
+      "row_number": 2
+    },
+    {
+      "product_name": "Вафли Венские со сгущенным молоком",
+      "quantity": 10216.0,
+      "price": 58.0,
+      "total": 592528.0,
+      "row_number": 3
+    }
+  ],
+  "totals": {
+    "total_amount": 650428.28
+  },
+  "validation": {
+    "errors": [],
+    "warnings": [],
+    "is_valid": true
+  },
+  "metadata": {
+    "parsed_at": "2026-01-07T13:09:23.703761"
+  }
+}
