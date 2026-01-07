@@ -69,7 +69,7 @@ def extract_text(file_path):
     poppler_path = find_poppler()
     
     if not tesseract_path:
-        print("❌ Tesseract не найден")
+        print("  Tesseract не найден")
         return ""
     
     # Настраиваем Tesseract
@@ -80,7 +80,7 @@ def extract_text(file_path):
     
     file_path = Path(file_path)
     if not file_path.exists():
-        print(f"❌ Файл не найден: {file_path}")
+        print(f"  Файл не найден: {file_path}")
         return ""
     
     try:
@@ -99,5 +99,5 @@ def extract_text(file_path):
         return text
         
     except Exception as e:
-        print(f"❌ Ошибка OCR: {e}")
+        print(f"  Ошибка OCR: {e}")
         return ""

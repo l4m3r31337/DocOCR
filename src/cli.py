@@ -59,15 +59,15 @@ class DocumentProcessorCLI:
             success = save_to_json(parsed_data, str(output_file))
             
             if success:
-                self.logger.info(f"✅ Успешно обработан: {input_file}")
-                self.logger.info(f"📁 Результат сохранен в: {output_file}")
+                self.logger.info(f"  Успешно обработан: {input_file}")
+                self.logger.info(f"  Результат сохранен в: {output_file}")
                 return True
             else:
-                self.logger.error(f"❌ Ошибка при сохранении JSON: {output_file}")
+                self.logger.error(f"  Ошибка при сохранении JSON: {output_file}")
                 return False
                 
         except Exception as e:
-            self.logger.error(f"❌ Ошибка при обработке файла {input_file}: {str(e)}", exc_info=True)
+            self.logger.error(f"  Ошибка при обработке файла {input_file}: {str(e)}", exc_info=True)
             return False
     
     def run(self):

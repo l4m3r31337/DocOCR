@@ -16,23 +16,23 @@ from data_parser import parse_document_data, save_to_json
 
 def test_improved_parser():
     print("\n" + "=" * 70)
-    print("🧪 ТЕСТИРОВАНИЕ УЛУЧШЕННОГО ПАРСЕРА")
+    print("  ТЕСТИРОВАНИЕ УЛУЧШЕННОГО ПАРСЕРА")
     print("=" * 70)
 
     # Ищем все PDF файлы в tests
     tests_dir = "../tests"
     if not os.path.exists(tests_dir):
-        print(f"❌ Папка tests не найдена: {tests_dir}")
+        print(f"  Папка tests не найдена: {tests_dir}")
         return
 
     pdf_files = [os.path.join(tests_dir, f) for f in os.listdir(tests_dir) if f.endswith('.pdf')]
     pdf_files.sort()
 
     if not pdf_files:
-        print("❌ PDF файлы не найдены в папке tests")
+        print("  PDF файлы не найдены в папке tests")
         return
 
-    print(f"📁 Найдено файлов для обработки: {len(pdf_files)}")
+    print(f"  Найдено файлов для обработки: {len(pdf_files)}")
 
     # Создаем папку для результатов
     os.makedirs("../output", exist_ok=True)
@@ -41,21 +41,21 @@ def test_improved_parser():
 
     for file_path in pdf_files:
         if not os.path.exists(file_path):
-            print(f"❌ Файл не найден: {file_path}")
+            print(f"  Файл не найден: {file_path}")
             continue
 
         try:
             filename = os.path.basename(file_path)
             print(f"\n{'=' * 50}")
-            print(f"📁 ФАЙЛ: {filename}")
+            print(f"  ФАЙЛ: {filename}")
             print('=' * 50)
 
             # 1. OCR извлекает текст
-            print("🔍 Извлекаем текст OCR...")
+            print("  Извлекаем текст OCR...")
             extracted_text = extract_text(file_path)
 
             if not extracted_text:
-                print("❌ OCR не смог извлечь текст")
+                print("  OCR не смог извлечь текст")
                 results_summary.append((filename, "OCR_ERROR", "Не удалось извлечь текст"))
                 continue
 
@@ -66,12 +66,12 @@ def test_improved_parser():
             # text_filename = f"../output/{filename}_text.txt"  # Убрали сохранение txt
 
             # 2. Классификатор определяет тип
-            print("🎯 Классифицируем документ...")
+            print("  Классифицируем документ...")
             doc_type = classify_document(extracted_text)
-            print(f"📊 Тип документа: {doc_type}")
+            print(f"  Тип документа: {doc_type}")
 
             # 3. Парсим данные улучшенным парсером
-            print("🔧 Парсим структурированные данные (улучшенный парсер)...")
+            print("  Парсим структурированные данные (улучшенный парсер)...")
             parsed_data = parse_document_data(extracted_text, doc_type)
 
             # 4. Сохраняем в JSON
@@ -79,11 +79,11 @@ def test_improved_parser():
             save_success = save_to_json(parsed_data, output_filename)
 
             if not save_success:
-                print("❌ Не удалось сохранить JSON")
+                print("  Не удалось сохранить JSON")
                 continue
 
             # 5. Выводим результаты
-            print("📋 РЕЗУЛЬТАТЫ ПАРСИНГА:")
+            print("  РЕЗУЛЬТАТЫ ПАРСИНГА:")
             print(f"   • Тип документа: {parsed_data['document_type']}")
 
             header = parsed_data['header']
@@ -194,35 +194,35 @@ def test_improved_parser():
                     success = False
 
             if success:
-                print("✅ Парсинг успешен!")
+                print("  Парсинг успешен!")
                 results_summary.append((filename, "SUCCESS", f"Найдено {len(table_data)} позиций"))
             else:
-                print(f"⚠️  Проблемы с парсингом: {', '.join(issues)}")
+                print(f"   Проблемы с парсингом: {', '.join(issues)}")
                 results_summary.append((filename, "PARTIAL", f"Проблемы: {', '.join(issues)}"))
 
         except Exception as e:
-            print(f"❌ КРИТИЧЕСКАЯ ОШИБКА при обработке {file_path}: {e}")
+            print(f"  КРИТИЧЕСКАЯ ОШИБКА при обработке {file_path}: {e}")
             import traceback
             traceback.print_exc()
             results_summary.append((filename, "ERROR", str(e)))
 
     # Итоговая сводка
     print("\n" + "=" * 70)
-    print("📊 ИТОГОВАЯ СВОДКА:")
+    print("  ИТОГОВАЯ СВОДКА:")
     print("=" * 70)
 
     success_count = sum(1 for _, status, _ in results_summary if status == "SUCCESS")
     partial_count = sum(1 for _, status, _ in results_summary if status == "PARTIAL")
     error_count = sum(1 for _, status, _ in results_summary if status in ["ERROR", "OCR_ERROR"])
 
-    print(f"✅ Успешно обработано: {success_count}")
-    print(f"⚠️  Частично обработано: {partial_count}")
-    print(f"❌ С ошибками: {error_count}")
+    print(f"  Успешно обработано: {success_count}")
+    print(f"   Частично обработано: {partial_count}")
+    print(f"  С ошибками: {error_count}")
     print(f"📂 Всего файлов: {len(results_summary)}")
 
-    print("\n📋 Детали по файлам:")
+    print("\n  Детали по файлам:")
     for filename, status, message in results_summary:
-        status_icon = "✅" if status == "SUCCESS" else "⚠️ " if status == "PARTIAL" else "❌"
+        status_icon = " " if status == "SUCCESS" else "  " if status == "PARTIAL" else " "
         print(f"  {status_icon} {filename:30s} - {status:10s} - {message}")
 
 

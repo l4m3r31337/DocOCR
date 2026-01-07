@@ -100,18 +100,18 @@ class BatchProcessor:
             # Проверяем, не обработан ли уже файл
             output_file = self.output_folder / f"{file_path.stem}_parsed.json"
             if self.skip_existing and output_file.exists():
-                self.logger.info(f"⏭️  Пропускаем (уже обработан): {file_path.name}")
+                self.logger.info(f"⏭   Пропускаем (уже обработан): {file_path.name}")
                 result['skipped'] = True
                 return result
             
-            self.logger.info(f"🔍 Начинаю обработку: {file_path.name}")
+            self.logger.info(f"  Начинаю обработку: {file_path.name}")
             
             # 1. OCR
             text = extract_text(str(file_path))
             
             if not text or len(text.strip()) < 10:
                 error_msg = f"Не удалось извлечь текст (получено {len(text) if text else 0} символов)"
-                self.logger.warning(f"⚠️  {error_msg}: {file_path.name}")
+                self.logger.warning(f"   {error_msg}: {file_path.name}")
                 result['error'] = error_msg
                 return result
             
@@ -126,19 +126,19 @@ class BatchProcessor:
             success = save_to_json(parsed_data, str(output_file))
             
             if success:
-                self.logger.info(f"✅ Успешно обработан: {file_path.name}")
+                self.logger.info(f"  Успешно обработан: {file_path.name}")
                 result['success'] = True
                 result['output_path'] = str(output_file)
                 result['doc_type'] = doc_type
                 result['items_count'] = len(parsed_data.get('table_data', []))
             else:
                 error_msg = "Ошибка при сохранении JSON"
-                self.logger.error(f"❌ {error_msg}: {file_path.name}")
+                self.logger.error(f"  {error_msg}: {file_path.name}")
                 result['error'] = error_msg
             
         except Exception as e:
             error_msg = str(e)
-            self.logger.error(f"❌ Ошибка при обработке {file_path.name}: {error_msg}", 
+            self.logger.error(f"  Ошибка при обработке {file_path.name}: {error_msg}", 
                             exc_info=self.logger.level == logging.DEBUG)
             result['error'] = error_msg
         
@@ -149,13 +149,13 @@ class BatchProcessor:
         files = self._get_files_to_process()
         
         if not files:
-            self.logger.warning(f"⚠️  В папке {self.input_folder} не найдено поддерживаемых файлов")
+            self.logger.warning(f"   В папке {self.input_folder} не найдено поддерживаемых файлов")
             self.logger.info(f"Поддерживаемые форматы: {', '.join(self.SUPPORTED_EXTENSIONS)}")
             return False
         
         self.stats['total'] = len(files)
-        self.logger.info(f"📁 Найдено файлов для обработки: {len(files)}")
-        self.logger.info(f"⚙️  Использую {self.num_workers} параллельных процесса(ов)")
+        self.logger.info(f"  Найдено файлов для обработки: {len(files)}")
+        self.logger.info(f"    Использую {self.num_workers} параллельных процесса(ов)")
         
         # Обработка файлов
         results = []
@@ -183,7 +183,7 @@ class BatchProcessor:
                             self.stats['failed'] += 1
                             
                     except Exception as e:
-                        self.logger.error(f"❌ Неожиданная ошибка при обработке {file.name}: {e}")
+                        self.logger.error(f"  Неожиданная ошибка при обработке {file.name}: {e}")
                         self.stats['failed'] += 1
         else:
             # Последовательная обработка
@@ -207,20 +207,20 @@ class BatchProcessor:
     def _print_statistics(self, results: List[Dict]):
         """Вывод статистики обработки"""
         self.logger.info("\n" + "=" * 60)
-        self.logger.info("📊 ИТОГОВАЯ СТАТИСТИКА:")
+        self.logger.info("  ИТОГОВАЯ СТАТИСТИКА:")
         self.logger.info("=" * 60)
         
-        self.logger.info(f"📁 Всего файлов: {self.stats['total']}")
-        self.logger.info(f"✅ Успешно обработано: {self.stats['success']}")
-        self.logger.info(f"⚠️  Пропущено (уже обработаны): {self.stats['skipped']}")
-        self.logger.info(f"❌ С ошибками: {self.stats['failed']}")
+        self.logger.info(f"  Всего файлов: {self.stats['total']}")
+        self.logger.info(f"  Успешно обработано: {self.stats['success']}")
+        self.logger.info(f"   Пропущено (уже обработаны): {self.stats['skipped']}")
+        self.logger.info(f"  С ошибками: {self.stats['failed']}")
         
         # Детали по ошибкам
         if self.stats['failed'] > 0:
-            self.logger.info("\n📋 Детали ошибок:")
+            self.logger.info("\n  Детали ошибок:")
             for result in results:
                 if not result.get('success') and not result.get('skipped'):
-                    self.logger.info(f"  ❌ {result['filename']}: {result.get('error', 'Неизвестная ошибка')}")
+                    self.logger.info(f"    {result['filename']}: {result.get('error', 'Неизвестная ошибка')}")
         
         self.logger.info(f"\n📂 Результаты сохранены в: {self.output_folder}")
         self.logger.info("=" * 60)
