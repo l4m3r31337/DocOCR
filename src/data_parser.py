@@ -1,148 +1,97 @@
-import re
 import json
-from datetime import datetime
+import re
+from typing import Dict, Any
+import logging
+from parsers import torg_12_header_parser, upd_header_parser, invoice_header_parser
 
-try:
-    from table_extractor import extract_table_data
-    from validator import validator
-except:
-    from .table_extractor import extract_table_data
-    from .validator import validator
+logger = logging.getLogger(__name__)
 
 
-MONTHS = {
-    "января": "01",
-    "февраля": "02",
-    "марта": "03",
-    "апреля": "04",
-    "мая": "05",
-    "июня": "06",
-    "июля": "07",
-    "августа": "08",
-    "сентября": "09",
-    "октября": "10",
-    "ноября": "11",
-    "декабря": "12",
-}
-
-
-class DataParser:
-    def parse_document(self, text: str, doc_type: str):
-        table = extract_table_data(text, doc_type)
-        totals = self._parse_totals(text, table)
-
-        return {
-            "document_type": doc_type,
-            "header": self._parse_header(text),
-            "table_data": table,
-            "totals": totals,
-            "validation": validator.validate({
-                "table_data": table,
-                "totals": totals
-            }),
-            "metadata": {
-                "parsed_at": datetime.now().isoformat()
-            }
+class DocumentParser:
+    def __init__(self):
+        self.parsers = {
+            'СЧЕТ_ФАКТУРА': self._parse_invoice_header,
+            'УПД': self._parse_upd_header,
+            'ТОРГ-12': self._parse_torg12_header
         }
 
-    # ---------------- HEADER ---------------- #
+    def _clean_text(self, text: str) -> str:
+        """Очищает текст от лишних пробелов и символов"""
+        if not text:
+            return ""
+        return text.replace('\n', ' ').replace('\r', ' ').strip()
 
-    def _parse_header(self, text: str):
-        header = {}
+    def _extract_inn_kpp(self, text: str, prefix: str) -> Dict[str, str]:
+        """Извлекает ИНН и КПП из текста"""
+        result = {"inn": "", "kpp": ""}
 
-        # ---------- НОМЕР ДОКУМЕНТА ----------
-        header["doc_number"] = self._extract_doc_number(text)
+        # Паттерн для ИНН/КПП
+        patterns = [
+            rf'{prefix}.*?ИНН\s*[:/]?\s*(\d{{10}}|\d{{12}}).*?КПП\s*[:/]?\s*(\d{{9}})',
+            rf'ИНН[/\\]КПП\s*{prefix}[:\s]*(\d+)[/\s]*(\d+)',
+            rf'{prefix}.*?ИНН\s*(\d{{10}}|\d{{12}}).*?КПП\s*(\d{{9}})',
+        ]
 
-        # ---------- ДАТА ----------
-        header["doc_date"] = self._extract_date(text)
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+            if match:
+                result["inn"] = match.group(1)
+                result["kpp"] = match.group(2) if len(
+                    match.groups()) > 1 else ""
+                break
 
-        # ---------- ПРОДАВЕЦ ----------
-        m = re.search(r"(Продавец|Поставщик)\s*[:\-]?\s*(.+)", text)
-        if m:
-            header["seller"] = m.group(2).split("\n")[0].strip()
+        return result
 
-        # ---------- ПОКУПАТЕЛЬ ----------
-        m = re.search(r"(Покупатель|Грузополучатель)\s*[:\-]?\s*(.+)", text)
-        if m:
-            header["buyer"] = m.group(2).split("\n")[0].strip()
+    def parse(self, document_type: str, text: str) -> Dict[str, Any]:
+        """
+        Основной метод парсинга документа (только шапка)
 
-        return header
+        Args:
+            document_type: Тип документа (определён классификатором)
+            text: Текст документа для парсинга
 
-    # ---------------- НОМЕР ДОКУМЕНТА ---------------- #
+        Returns:
+            Словарь с распарсенными данными из шапки
+        """
+        logger.info(f"Парсим документ типа: {document_type} (только шапка)")
 
-    def _extract_doc_number(self, text: str):
-        # № 12345
-        m = re.search(r"№\s*(\d+)", text)
-        if m:
-            return m.group(1)
+        if document_type not in self.parsers:
+            logger.error(f"Неизвестный тип документа: {document_type}")
+            raise ValueError(f"Парсер для типа {document_type} не реализован")
 
-        # ТОВАРНАЯ НАКЛАДНАЯ  39883
-        m = re.search(
-            r"(ТОВАРНАЯ\s+НАКЛАДНАЯ|СЧЕТ[-\s]?ФАКТУРА|УПД)\s+(\d{2,})",
-            text,
-            re.IGNORECASE
-        )
-        if m:
-            return m.group(2)
+        return self.parsers[document_type](text)
 
-        # номер 123 от ...
-        m = re.search(r"номер\s+(\d+)", text, re.IGNORECASE)
-        if m:
-            return m.group(1)
+    def _parse_invoice_header(self, text: str) -> Dict[str, Any]:
+        return invoice_header_parser._parse_invoice_header(self, text)
 
-        return None
+    def _parse_upd_header(self, text: str) -> Dict[str, Any]:
+        return upd_header_parser._parse_upd_header(self, text)
 
-    # ---------------- ДАТА ---------------- #
+    def _parse_torg12_header(self, text: str) -> Dict[str, Any]:
+        return torg_12_header_parser._parse_torg12_header(self, text)
 
-    def _extract_date(self, text: str):
-        # 10.01.2015
-        m = re.search(r"(\d{1,2}\.\d{1,2}\.\d{4})", text)
-        if m:
-            return m.group(1)
-
-        # 10 декабря 2016
-        m = re.search(
-            r"(\d{1,2})\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\s+(\d{4})",
-            text,
-            re.IGNORECASE
-        )
-        if m:
-            return f"{m.group(1).zfill(2)}.{MONTHS[m.group(2).lower()]}.{m.group(3)}"
-
-        return None
-
-    # ---------------- TOTALS ---------------- #
-
-    def _parse_totals(self, text: str, table):
-        m = re.search(r"Всего.*?([\d\s,.]+)", text, re.IGNORECASE)
-        if m:
-            try:
-                return {
-                    "total_amount": float(
-                        m.group(1).replace(" ", "").replace(",", ".")
-                    )
-                }
-            except:
-                pass
-
-        return {
-            "total_amount": round(sum(r["total"] for r in table), 2)
-        }
+    def save_to_json(self, data: Dict[str, Any], filename: str) -> None:
+        """Сохранение результата в JSON файл"""
+        try:
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            logger.info(f"Данные сохранены в файл: {filename}")
+        except Exception as e:
+            logger.error(f"Ошибка сохранения в файл {filename}: {e}")
+            raise
 
 
-# ---------------- API ---------------- #
+# Функция для использования в пайплайне
+def parse_document(document_type: str, text: str) -> Dict[str, Any]:
+    """
+    Основная функция парсинга шапки документа
 
-data_parser = DataParser()
+    Args:
+        document_type: Тип документа от классификатора
+        text: Текст документа
 
-
-def parse_document_data(text: str, doc_type: str):
-    return data_parser.parse_document(text, doc_type)
-
-
-def save_to_json(data, filename: str):
-    try:
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        return True
-    except:
-        return False
+    Returns:
+        Словарь с распарсенными данными из шапки
+    """
+    parser = DocumentParser()
+    return parser.parse(document_type, text)

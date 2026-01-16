@@ -76,7 +76,7 @@ def extract_text(file_path):
     pytesseract.pytesseract.tesseract_cmd = tesseract_path
     
     # Конфиг OCR
-    config = "--oem 3 --psm 1 -l rus+eng"
+    config = "--oem 3 --psm 4 -l rus+eng"
     
     file_path = Path(file_path)
     if not file_path.exists():

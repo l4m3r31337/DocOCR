@@ -14,7 +14,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 from logger_config import setup_logging
 from ocr_engine import extract_text
 from document_classifier import classify_document
-from data_parser import parse_document_data, save_to_json
+from data_parser import parse_document
+from json_builder import save_to_json
 
 
 class BatchProcessor:
@@ -120,7 +121,7 @@ class BatchProcessor:
             self.logger.debug(f"📄 Тип документа {file_path.name}: {doc_type}")
             
             # 3. Парсинг
-            parsed_data = parse_document_data(text, doc_type)
+            parsed_data = parse_document(doc_type, text)
             
             # 4. Сохранение
             success = save_to_json(parsed_data, str(output_file))

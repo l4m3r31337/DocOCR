@@ -12,7 +12,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 from ocr_engine import extract_text
 from document_classifier import classify_document
-from data_parser import parse_document_data, save_to_json
+from data_parser import parse_document
+from json_builder import save_to_json
 
 # Импортируем наш новый модуль для пакетной обработки
 from batch_processor import BatchProcessor
@@ -27,48 +28,43 @@ class DocumentProcessorCLI:
         """Обработка одного документа"""
         try:
             self.logger.info(f"Начинаю обработку файла: {input_file}")
-            
-            # Проверяем существование файла
+
             if not os.path.exists(input_file):
                 self.logger.error(f"Файл не найден: {input_file}")
                 return False
-            
+        
             # 1. Извлекаем текст с помощью OCR
             self.logger.debug("Извлечение текста с помощью OCR...")
             text = extract_text(input_file)
-            
+
             if not text or len(text.strip()) < 50:
                 self.logger.warning(f"Мало текста извлечено из файла: {len(text) if text else 0} символов")
-            
+        
             # 2. Классифицируем документ
             self.logger.debug("Классификация документа...")
             doc_type = classify_document(text)
             self.logger.info(f"Определен тип документа: {doc_type}")
-            
-            # 3. Парсим данные
-            self.logger.debug("Парсинг структурированных данных...")
-            parsed_data = parse_document_data(text, doc_type)
-            
+        
+            # 3. Парсим данные (шапку)
+            self.logger.debug("Парсинг данных из шапки...")
+            parsed_data = parse_document(doc_type, text)
+
             # 4. Определяем путь для сохранения
             if not output_file:
                 input_path = Path(input_file)
-                output_file = input_path.parent / f"{input_path.stem}_parsed.json"
-            
+                output_file = str(input_path.parent / f"{input_path.stem}_parsed.json")
+        
             # 5. Сохраняем в JSON
             self.logger.debug(f"Сохранение в JSON: {output_file}")
-            success = save_to_json(parsed_data, str(output_file))
+            save_to_json(parsed_data, output_file)
+        
+            self.logger.info(f"Успешно обработан: {input_file}")
+            self.logger.info(f"Результат сохранен в: {output_file}")
+            return True
             
-            if success:
-                self.logger.info(f"  Успешно обработан: {input_file}")
-                self.logger.info(f"  Результат сохранен в: {output_file}")
-                return True
-            else:
-                self.logger.error(f"  Ошибка при сохранении JSON: {output_file}")
-                return False
-                
         except Exception as e:
-            self.logger.error(f"  Ошибка при обработке файла {input_file}: {str(e)}", exc_info=True)
-            return False
+            self.logger.error(f"Ошибка при обработке файла {input_file}: {str(e)}", exc_info=True)
+        return False
     
     def run(self):
         """Основной метод запуска CLI"""
@@ -76,10 +72,10 @@ class DocumentProcessorCLI:
             description='Система распознавания бухгалтерских документов',
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog="""
-Примеры использования:
-  doc-processor single --input документ.pdf --output результат.json
-  doc-processor batch --input-folder ./документы/ --output-folder ./результаты/
-  doc-processor batch --input-folder ./документы/ --output-folder ./результаты/ --workers 4
+                Примеры использования:
+                    doc-processor single --input документ.pdf --output результат.json
+                    doc-processor batch --input-folder ./документы/ --output-folder ./результаты/
+                    doc-processor batch --input-folder ./документы/ --output-folder ./результаты/ --workers 4
             """
         )
         
@@ -113,7 +109,7 @@ class DocumentProcessorCLI:
             '--workers', '-w',
             type=int,
             default=2,
-            help='Количество параллельных процессов (по умолчанию: 2)'
+            help='Количество параллельных процессов (по умолчанию: 2). Выбирать значение больше количества файлов в папке бессмысленно.'
         )
         batch_parser.add_argument(
             '--skip-existing',
