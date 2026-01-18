@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 from ocr_engine import extract_text
 from document_classifier import classify_document
 from data_parser import parse_document
+from table_parser import extract_and_parse_table
 from json_builder import save_to_json
 
 # Импортируем наш новый модуль для пакетной обработки
@@ -49,6 +50,10 @@ class DocumentProcessorCLI:
             self.logger.debug("Парсинг данных из шапки...")
             parsed_data = parse_document(doc_type, text)
 
+            self.logger.debug("Парсинг данных из таблицы...")
+            parsed_table = extract_and_parse_table(input_file, doc_type)
+            print(parsed_table)
+
             # 4. Определяем путь для сохранения
             if not output_file:
                 input_path = Path(input_file)
@@ -56,7 +61,8 @@ class DocumentProcessorCLI:
         
             # 5. Сохраняем в JSON
             self.logger.debug(f"Сохранение в JSON: {output_file}")
-            save_to_json(parsed_data, output_file)
+            json_data = {**parsed_data, **parsed_table}
+            save_to_json(json_data, output_file)
         
             self.logger.info(f"Успешно обработан: {input_file}")
             self.logger.info(f"Результат сохранен в: {output_file}")

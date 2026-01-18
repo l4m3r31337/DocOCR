@@ -15,6 +15,7 @@ from logger_config import setup_logging
 from ocr_engine import extract_text
 from document_classifier import classify_document
 from data_parser import parse_document
+from table_parser import extract_and_parse_table
 from json_builder import save_to_json
 
 
@@ -122,9 +123,11 @@ class BatchProcessor:
             
             # 3. Парсинг
             parsed_data = parse_document(doc_type, text)
+            parsed_table = extract_and_parse_table(file_path, doc_type)
+            json_data = {**parsed_data, **parsed_table}
             
             # 4. Сохранение
-            success = save_to_json(parsed_data, str(output_file))
+            success = save_to_json(json_data, str(output_file))
             
             if success:
                 self.logger.info(f"  Успешно обработан: {file_path.name}")

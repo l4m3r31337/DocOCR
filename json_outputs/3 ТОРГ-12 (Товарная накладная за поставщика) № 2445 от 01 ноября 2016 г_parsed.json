@@ -28,5 +28,22 @@
     "number": "98989",
     "date": "24.12.2014"
   },
-  "extraction_status": "success"
+  "extraction_status": "success",
+  "vat_rate": "Без НДС",
+  "table_items": [],
+  "totals": {
+    "total_without_vat": 0,
+    "total_vat": 0,
+    "total_with_vat": 0
+  },
+  "validation_results": {
+    "line_numbering_check": {
+      "status": "PASSED",
+      "message": "Все номера строк последовательны"
+    },
+    "arithmetic_check": {
+      "status": "PASSED",
+      "message": "Арифметические проверки пройдены"
+    }
+  }
 }

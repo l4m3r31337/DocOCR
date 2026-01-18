@@ -49,6 +49,7 @@ class TableParser:
                 data = df.to_dict(orient='records')
             
             logger.info(f"Извлечено записей: {len(data)}")
+    
             return data
             
         except Exception as e:
@@ -128,7 +129,6 @@ def extract_and_parse_table(pdf_path: str, document_type: str) -> Dict[str, Any]
     
     # Извлекаем таблицы из PDF
     table_data = parser.extract_tables_from_pdf(pdf_path)
-    
     if not table_data:
         return {
             "error": "Таблицы не найдены в документе",
