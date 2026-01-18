@@ -25,21 +25,130 @@
   },
   "basis": "",
   "extraction_status": "success",
-  "vat_rate": "Без НДС",
-  "table_items": [],
+  "vat_rate": "18%",
+  "table_items": [
+    {
+      "line_number": 1,
+      "product_name": "Пирог тирольский с вишней",
+      "unit": "шт",
+      "quantity": 355,
+      "price": 152.54,
+      "price_without_vat": 54152.54,
+      "total_with_vat": 63900.0,
+      "vat_rate": "18%",
+      "vat_amount": 9747.46
+    },
+    {
+      "line_number": 2,
+      "product_name": "Печенье шоколадное",
+      "unit": "шт",
+      "quantity": 364,
+      "price": 127.12,
+      "price_without_vat": 46271.19,
+      "total_with_vat": 54600.0,
+      "vat_rate": "18%",
+      "vat_amount": 8328.81
+    },
+    {
+      "line_number": 3,
+      "product_name": "Вафли \"Венские\" с шоколадом",
+      "unit": "шт",
+      "quantity": 259,
+      "price": 50.85,
+      "price_without_vat": 13169.49,
+      "total_with_vat": 15540.0,
+      "vat_rate": "18%",
+      "vat_amount": 2370.51
+    },
+    {
+      "line_number": 4,
+      "product_name": "Печенье \"Юбилейное\"",
+      "unit": "шт",
+      "quantity": 117,
+      "price": 84.75,
+      "price_without_vat": 9915.25,
+      "total_with_vat": 11700.0,
+      "vat_rate": "18%",
+      "vat_amount": 1784.75
+    },
+    {
+      "line_number": 5,
+      "product_name": "Пирог тирольский с черникой",
+      "unit": "шт",
+      "quantity": 144,
+      "price": 152.54,
+      "price_without_vat": 21966.1,
+      "total_with_vat": 25920.0,
+      "vat_rate": "18%",
+      "vat_amount": 3953.9
+    },
+    {
+      "line_number": 6,
+      "product_name": "Вафли \"Венские\" со сгущенным молоком",
+      "unit": "шт",
+      "quantity": 197,
+      "price": 67.8,
+      "price_without_vat": 13355.93,
+      "total_with_vat": 15760.0,
+      "vat_rate": "18%",
+      "vat_amount": 2404.07
+    },
+    {
+      "line_number": 7,
+      "product_name": "Миникруассаны с клубничным джемом",
+      "unit": "шт",
+      "quantity": 425,
+      "price": 93.22,
+      "price_without_vat": 39618.64,
+      "total_with_vat": 46750.0,
+      "vat_rate": "18%",
+      "vat_amount": 7131.36
+    },
+    {
+      "line_number": 8,
+      "product_name": "Конфеты \"Батончик\"",
+      "unit": "шт",
+      "quantity": 327,
+      "price": 101.69,
+      "price_without_vat": 33254.24,
+      "total_with_vat": 39240.0,
+      "vat_rate": "18%",
+      "vat_amount": 5985.76
+    },
+    {
+      "line_number": 9,
+      "product_name": "Миникруассаны классические",
+      "unit": "шт",
+      "quantity": 228,
+      "price": 266.95,
+      "price_without_vat": 60864.41,
+      "total_with_vat": 71820.0,
+      "vat_rate": "18%",
+      "vat_amount": 10955.59
+    },
+    {
+      "line_number": 10,
+      "product_name": "Печенье \"Юбилейное\"",
+      "unit": "шт",
+      "quantity": 382,
+      "price": 84.75,
+      "price_without_vat": 32372.88,
+      "total_with_vat": 38200.0,
+      "vat_rate": "18%",
+      "vat_amount": 5827.12
+    }
+  ],
   "totals": {
-    "total_without_vat": 0,
-    "total_vat": 0,
-    "total_with_vat": 0
+    "total_without_vat": 324940.67,
+    "total_vat": 58489.33,
+    "total_with_vat": 383430.0
   },
   "validation_results": {
     "line_numbering_check": {
-      "status": "PASSED",
-      "message": "Все номера строк последовательны"
+      "status": "PASSED"
     },
     "arithmetic_check": {
-      "status": "PASSED",
-      "message": "Арифметические проверки пройдены"
+      "status": "PASSED"
     }
   }
 }

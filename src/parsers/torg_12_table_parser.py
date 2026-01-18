@@ -1,8 +1,9 @@
 import re
 from typing import Dict, List, Any, Optional
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, DecimalException
 import math
 import logging
+from validator import _validate_arithmetic_checks
 
 logger = logging.getLogger(__name__)
 
@@ -116,22 +117,22 @@ def _parse_torg_12_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, An
         vat_amount = parse_number(col13)
         
         # Определяем данные о сумме без НДС и ставке НДС
-        price_without_vat = Decimal('0')
+        total_without_vat = Decimal('0')
         vat_rate = "Без НДС"
         
         # Пробуем извлечь данные из col11
         if col11 and str(col11).strip():
             vat_rate_from_col11, amount_from_col11 = extract_vat_rate_and_amount(str(col11))
             if amount_from_col11 > 0:
-                price_without_vat = amount_from_col11
+                total_without_vat = amount_from_col11
             if vat_rate_from_col11 != "Без НДС":
                 vat_rate = vat_rate_from_col11
         
         # Если не нашли в col11, пробуем col12
-        if price_without_vat == 0 and col12 and str(col12).strip():
+        if total_without_vat == 0 and col12 and str(col12).strip():
             vat_rate_from_col12, amount_from_col12 = extract_vat_rate_and_amount(str(col12))
             if amount_from_col12 > 0:
-                price_without_vat = amount_from_col12
+                total_without_vat = amount_from_col12
             if vat_rate_from_col12 != "Без НДС" and vat_rate == "Без НДС":
                 vat_rate = vat_rate_from_col12
         
@@ -142,19 +143,19 @@ def _parse_torg_12_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, An
         # Если документ без НДС
         if vat_rate == "Без НДС":
             if total_with_vat > 0:
-                price_without_vat = total_with_vat
+                total_without_vat = total_with_vat
             vat_amount = Decimal('0')
         else:
             # Если есть НДС, но сумма без НДС не найдена
-            if price_without_vat == 0 and total_with_vat > 0 and vat_amount > 0:
-                price_without_vat = total_with_vat - vat_amount
+            if total_without_vat == 0 and total_with_vat > 0 and vat_amount > 0:
+                total_without_vat = total_with_vat - vat_amount
             # Если сумма НДС не найдена
-            elif vat_amount == 0 and total_with_vat > 0 and price_without_vat > 0:
-                vat_amount = total_with_vat - price_without_vat
+            elif vat_amount == 0 and total_with_vat > 0 and total_without_vat > 0:
+                vat_amount = total_with_vat - total_without_vat
         
         # Если общая сумма не задана
-        if total_with_vat == 0 and price_without_vat > 0 and vat_amount > 0:
-            total_with_vat = price_without_vat + vat_amount
+        if total_with_vat == 0 and total_without_vat > 0 and vat_amount > 0:
+            total_with_vat = total_without_vat + vat_amount
         
         # Округляем значения
         def round_decimal(value: Decimal) -> Decimal:
@@ -169,7 +170,7 @@ def _parse_torg_12_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, An
                 "unit": unit,
                 "quantity": float(round_decimal(quantity)),
                 "price": float(round_decimal(price)),
-                "price_without_vat": float(round_decimal(price_without_vat)),
+                "total_without_vat": float(round_decimal(total_without_vat)),
                 "total_with_vat": float(round_decimal(total_with_vat)),
                 "vat_rate": vat_rate,
                 "vat_amount": float(round_decimal(vat_amount))
@@ -200,7 +201,7 @@ def _parse_torg_12_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, An
         else:
             # Вычисляем итоги самостоятельно
             totals = {
-                "total_without_vat": sum(item["price_without_vat"] for item in table_items),
+                "total_without_vat": sum(item["total_without_vat"] for item in table_items),
                 "total_vat": sum(item["vat_amount"] for item in table_items),
                 "total_with_vat": sum(item["total_with_vat"] for item in table_items)
             }
@@ -229,16 +230,7 @@ def _parse_torg_12_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, An
             line_numbering_ok = False
     
     # Арифметическая проверка
-    arithmetic_ok = True
-    for item in table_items:
-        # Проверяем вычисления
-        expected_price_without_vat = Decimal(str(item["price"])) * Decimal(str(item["quantity"]))
-        if abs(expected_price_without_vat - Decimal(str(item["price_without_vat"]))) > Decimal('0.01'):
-            arithmetic_ok = False
-        
-        expected_total = Decimal(str(item["price_without_vat"])) + Decimal(str(item["vat_amount"]))
-        if abs(expected_total - Decimal(str(item["total_with_vat"]))) > Decimal('0.01'):
-            arithmetic_ok = False
+    arithmetic_check = _validate_arithmetic_checks(table_items)
     
     result = {
         "vat_rate": vat_rate,
@@ -247,14 +239,11 @@ def _parse_torg_12_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, An
         "validation_results": {
             "line_numbering_check": {
                 "status": "PASSED" if line_numbering_ok else "FAILED",
-                "message": "Все номера строк последовательны" if line_numbering_ok 
-                          else "Нарушена последовательность номеров строк"
             },
             "arithmetic_check": {
-                "status": "PASSED" if arithmetic_ok else "FAILED",
-                "message": "Арифметические проверки пройдены" if arithmetic_ok 
-                          else "Обнаружены арифметические ошибки"
-            }
+                "status": "PASSED" if arithmetic_check["is_valid"] else "FAILED"
+                } | ({"details": arithmetic_check, "message": f"Найдено {len(arithmetic_check['errors'])} ошибок"} 
+                    if not arithmetic_check["is_valid"] else {})
         }
     }
     

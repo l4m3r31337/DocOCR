@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class DocumentParser:
     def __init__(self):
         self.parsers = {
-            'СЧЕТ_ФАКТУРА': self._parse_invoice_header,
+            'СЧЕТ_ФАКТУРА': self._parse_invoice_header, 
             'УПД': self._parse_upd_header,
             'ТОРГ-12': self._parse_torg12_header
         }

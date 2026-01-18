@@ -1,8 +1,9 @@
 import re
 from typing import Dict, List, Any, Optional
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, DecimalException
 import math
 import logging
+from validator import _validate_arithmetic_checks
 
 logger = logging.getLogger(__name__)
 
@@ -217,23 +218,7 @@ def _parse_upd_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, Any]:
             line_numbering_ok = False
     
     # Арифметическая проверка
-    arithmetic_ok = True
-    errors = []
-    for i, item in enumerate(table_items, 1):
-        # Проверяем price * quantity = price_without_vat
-        calc_price_without_vat = Decimal(str(item["price"])) * Decimal(str(item["quantity"]))
-        expected_price_without_vat = Decimal(str(item["price_without_vat"]))
-        
-        # Проверяем price_without_vat + vat_amount = total_with_vat
-        calc_total_with_vat = expected_price_without_vat + Decimal(str(item["vat_amount"]))
-        expected_total_with_vat = Decimal(str(item["total_with_vat"]))
-        
-        tolerance = Decimal('0.01')
-        if abs(calc_price_without_vat - expected_price_without_vat) > tolerance:
-            arithmetic_ok = False
-        
-        if abs(calc_total_with_vat - expected_total_with_vat) > tolerance:
-            arithmetic_ok = False
+    arithmetic_check = _validate_arithmetic_checks(table_items)
     
     result = {
         "vat_rate": vat_rate,
@@ -242,14 +227,11 @@ def _parse_upd_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, Any]:
         "validation_results": {
             "line_numbering_check": {
                 "status": "PASSED" if line_numbering_ok else "FAILED",
-                "message": "Все номера строк последовательны" if line_numbering_ok 
-                          else "Нарушена последовательность номеров строк"
             },
             "arithmetic_check": {
-                "status": "PASSED" if arithmetic_ok else "FAILED",
-                "message": "Арифметические проверки пройдены" if arithmetic_ok 
-                          else "Обнаружены арифметические ошибки"
-            }
+                "status": "PASSED" if arithmetic_check["is_valid"] else "FAILED"
+                } | ({"details": arithmetic_check, "message": f"Найдено {len(arithmetic_check['errors'])} ошибок"} 
+                    if not arithmetic_check["is_valid"] else {})
         }
     }
     

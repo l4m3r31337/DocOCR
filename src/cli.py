@@ -10,6 +10,9 @@ from pathlib import Path
 # Добавляем путь к модулям
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
+import warnings
+warnings.filterwarnings("ignore", module="pypdf")
+
 from ocr_engine import extract_text
 from document_classifier import classify_document
 from data_parser import parse_document
@@ -52,7 +55,6 @@ class DocumentProcessorCLI:
 
             self.logger.debug("Парсинг данных из таблицы...")
             parsed_table = extract_and_parse_table(input_file, doc_type)
-            print(parsed_table)
 
             # 4. Определяем путь для сохранения
             if not output_file:

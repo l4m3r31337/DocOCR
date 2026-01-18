@@ -2,6 +2,7 @@ import re
 from typing import Dict, List, Any
 from decimal import Decimal, ROUND_HALF_UP
 import logging
+from validator import _validate_arithmetic_checks
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ def _parse_invoice_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, An
     """Парсинг табличной части счёта-фактуры"""
     logger.info("Запущен парсер таблицы счёта-фактуры")
     
-    items = []
+    table_items = []
     line_no = 1
 
     for row in table_data:
@@ -72,7 +73,7 @@ def _parse_invoice_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, An
             except:
                 vat_rate = "Без НДС"
 
-        items.append({
+        table_items.append({
             "line_number": line_no,
             "product_name": name,
             "unit": str(row.get("2", "")).strip(),
@@ -105,47 +106,34 @@ def _parse_invoice_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, An
         else:
             # Если не нашли явную итоговую строку, вычисляем сами
             totals = {
-                "total_without_vat": sum(item["price_without_vat"] for item in items),
-                "total_vat": sum(item["vat_amount"] for item in items),
-                "total_with_vat": sum(item["total_with_vat"] for item in items)
+                "total_without_vat": sum(item["price_without_vat"] for item in table_items),
+                "total_vat": sum(item["vat_amount"] for item in table_items),
+                "total_with_vat": sum(item["total_with_vat"] for item in table_items)
             }
-
-    # Валидация арифметики
-    arithmetic_ok = True
-    for item in items:
-        # Проверяем: цена × количество ≈ стоимость без НДС
-        expected_wo_vat = item["price"] * item["quantity"]
-        if abs(expected_wo_vat - item["price_without_vat"]) > 0.01:
-            arithmetic_ok = False
-        
-        # Проверяем: стоимость без НДС + НДС ≈ итого с НДС
-        expected_total = item["price_without_vat"] + item["vat_amount"]
-        if abs(expected_total - item["total_with_vat"]) > 0.01:
-            arithmetic_ok = False
 
     # Проверка нумерации строк
     line_numbering_ok = True
-    expected_line_numbers = list(range(1, len(items) + 1))
-    actual_line_numbers = [item["line_number"] for item in items]
+    expected_line_numbers = list(range(1, len(table_items) + 1))
+    actual_line_numbers = [item["line_number"] for item in table_items]
     
     if expected_line_numbers != actual_line_numbers:
         line_numbering_ok = False
 
+    # Арифметическая проверка
+    arithmetic_check = _validate_arithmetic_checks(table_items)
+
     result = {
-        "vat_rate": items[0]["vat_rate"] if items else "Без НДС",
-        "table_items": items,
+        "vat_rate": table_items[0]["vat_rate"] if table_items else "Без НДС",
+        "table_items": table_items,
         "totals": totals,
         "validation_results": {
             "line_numbering_check": {
                 "status": "PASSED" if line_numbering_ok else "FAILED",
-                "message": "Все номера строк последовательны" if line_numbering_ok 
-                          else "Обнаружены пропуски в нумерации строк"
             },
             "arithmetic_check": {
-                "status": "PASSED" if arithmetic_ok else "FAILED",
-                "message": "Арифметические проверки пройдены" if arithmetic_ok 
-                          else "Обнаружены ошибки в расчетах"
-            }
+                "status": "PASSED" if arithmetic_check["is_valid"] else "FAILED"
+                } | ({"details": arithmetic_check, "message": f"Найдено {len(arithmetic_check['errors'])} ошибок"} 
+                    if not arithmetic_check["is_valid"] else {})
         }
     }
 

@@ -1,4 +1,9 @@
+import gc
 import json
+import os
+import shutil
+import tempfile
+import time
 import camelot
 import pandas as pd
 from typing import Dict, List, Any
@@ -15,46 +20,77 @@ class TableParser:
             'УПД': self._parse_upd_table,
             'ТОРГ-12': self._parse_torg12_table
         }
+
+    def _cleanup_camelot_temp_files(self):
+        """Очистка временных файлов Camelot"""
+        try:
+            # Принудительный сбор мусора
+            gc.collect()
+            
+            # Ищем временные директории Camelot
+            temp_dir = tempfile.gettempdir()
+            for item in os.listdir(temp_dir):
+                if item.startswith('tmp') and ('magick' in item or 'camelot' in item):
+                    path = os.path.join(temp_dir, item)
+                    try:
+                        if os.path.isdir(path):
+                            shutil.rmtree(path, ignore_errors=True)
+                        elif os.path.isfile(path):
+                            os.unlink(path)
+                    except:
+                        pass  # Игнорируем ошибки при удалении
+        except:
+            pass  # Не критично, если не удалось очистить
     
     def extract_tables_from_pdf(self, pdf_path: str) -> List[Dict[str, Any]]:
         """
         Извлекает таблицы из PDF файла с помощью camelot
-        
-        Args:
-            pdf_path: Путь к PDF файлу
-            
+    
         Returns:
             Список словарей с данными таблиц
         """
         logger.info(f"Извлечение таблиц из PDF: {pdf_path}")
-        
+    
         try:
-            # Пробуем извлечь таблицы со всех страниц
             tables = camelot.read_pdf(pdf_path, pages='1-end', flavor='lattice')
-            
+
+            time.sleep(0.1)
+        
             if tables.n == 0:
                 logger.warning("Таблицы не найдены в документе")
                 return []
-            
+        
             logger.info(f"Найдено таблиц: {tables.n}")
-            
+        
+            # Создаем DataFrame с правильными именами колонок
             if tables.n == 1:
-                # Только одна таблица
                 df = tables[0].df
-                data = df.to_dict(orient='records')
             else:
-                # Объединяем все найденные таблицы
                 df_list = [tables[i].df for i in range(tables.n)]
                 df = pd.concat(df_list, ignore_index=True)
-                data = df.to_dict(orient='records')
-            
+        
+            # Переименовываем колонки в строковые индексы "0", "1", "2"...
+            df.columns = [str(i) for i in range(len(df.columns))]
+        
+            # Преобразуем в список словарей
+            data = df.to_dict(orient='records')
+        
             logger.info(f"Извлечено записей: {len(data)}")
-    
+        
+            # Отладка
+            if data:
+                logger.debug(f"Пример строки данных: {data[0]}")
+                logger.debug(f"Ключи в строке: {list(data[0].keys())}")
+        
             return data
             
         except Exception as e:
             logger.error(f"Ошибка при извлечении таблиц из PDF: {e}")
             raise
+
+        finally:
+            # Попытка очистки временных файлов Camelot
+            self._cleanup_camelot_temp_files()
     
     def parse(self, document_type: str, table_data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -129,6 +165,7 @@ def extract_and_parse_table(pdf_path: str, document_type: str) -> Dict[str, Any]
     
     # Извлекаем таблицы из PDF
     table_data = parser.extract_tables_from_pdf(pdf_path)
+    
     if not table_data:
         return {
             "error": "Таблицы не найдены в документе",
@@ -141,4 +178,6 @@ def extract_and_parse_table(pdf_path: str, document_type: str) -> Dict[str, Any]
         }
     
     # Парсим таблицу
-    return parser.parse(document_type, table_data)
+    result = parser.parse(document_type, table_data)
+
+    return result

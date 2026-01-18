@@ -28,21 +28,53 @@
     "date": ""
   },
   "extraction_status": "success",
-  "vat_rate": "Без НДС",
-  "table_items": [],
+  "vat_rate": "18%",
+  "table_items": [
+    {
+      "line_number": 1,
+      "product_name": "Пирог тирольский с черникой",
+      "unit": "шт",
+      "quantity": 404.0,
+      "price": 144.21,
+      "price_without_vat": 58258.95,
+      "total_with_vat": 68745.56,
+      "vat_rate": "18%",
+      "vat_amount": 10486.61
+    },
+    {
+      "line_number": 2,
+      "product_name": "Пирог тирольский с вишней",
+      "unit": "шт",
+      "quantity": 63.0,
+      "price": 144.21,
+      "price_without_vat": 9084.93,
+      "total_with_vat": 10720.22,
+      "vat_rate": "18%",
+      "vat_amount": 1635.29
+    },
+    {
+      "line_number": 3,
+      "product_name": "Вафли \"Венские\" со сгущенным  молоком",
+      "unit": "шт",
+      "quantity": 83.0,
+      "price": 63.97,
+      "price_without_vat": 5309.22,
+      "total_with_vat": 6264.88,
+      "vat_rate": "18%",
+      "vat_amount": 955.66
+    }
+  ],
   "totals": {
-    "total_without_vat": 0,
-    "total_vat": 0,
-    "total_with_vat": 0
+    "total_without_vat": 72653.1,
+    "total_vat": 13077.56,
+    "total_with_vat": 85730.66
   },
   "validation_results": {
     "line_numbering_check": {
-      "status": "PASSED",
-      "message": "Все номера строк последовательны"
+      "status": "PASSED"
     },
     "arithmetic_check": {
-      "status": "PASSED",
-      "message": "Арифметические проверки пройдены"
+      "status": "PASSED"
     }
   }
 }
