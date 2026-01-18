@@ -36,7 +36,7 @@
       "unit": "шт",
       "quantity": 404.0,
       "price": 144.21,
-      "price_without_vat": 58258.95,
+      "total_without_vat": 58258.95,
       "total_with_vat": 68745.56,
       "vat_rate": "18%",
       "vat_amount": 10486.61
@@ -47,7 +47,7 @@
       "unit": "шт",
       "quantity": 63.0,
       "price": 144.21,
-      "price_without_vat": 9084.93,
+      "total_without_vat": 9084.93,
       "total_with_vat": 10720.22,
       "vat_rate": "18%",
       "vat_amount": 1635.29
@@ -58,7 +58,7 @@
       "unit": "шт",
       "quantity": 83.0,
       "price": 63.97,
-      "price_without_vat": 5309.22,
+      "total_without_vat": 5309.22,
       "total_with_vat": 6264.88,
       "vat_rate": "18%",
       "vat_amount": 955.66

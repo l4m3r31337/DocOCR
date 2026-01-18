@@ -14,17 +14,8 @@ def _validate_arithmetic_checks(table_items: List[Dict[str, Any]]) -> Dict[str, 
             quantity = Decimal(str(item["quantity"]))
             price = Decimal(str(item["price"]))
             
-            # Для разных типов документов могут быть разные названия полей
-            # Проверяем наличие полей и используем соответствующие
-            if "price_without_vat" in item:
-                total_without_vat = Decimal(str(item["price_without_vat"]))
-                field_name = "price_without_vat"
-            elif "total_without_vat" in item:
-                total_without_vat = Decimal(str(item["total_without_vat"]))
-                field_name = "total_without_vat"
-            else:
-                total_without_vat = Decimal('0')
-                field_name = "total_without_vat"
+            total_without_vat = Decimal(str(item["total_without_vat"]))
+            field_name = "total_without_vat"
             
             vat_amount = Decimal(str(item["vat_amount"]))
             total_with_vat = Decimal(str(item["total_with_vat"]))

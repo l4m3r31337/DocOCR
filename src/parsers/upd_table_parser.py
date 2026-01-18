@@ -113,10 +113,10 @@ def _parse_upd_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, Any]:
         price = parse_number(col6)
         
         # Обрабатываем стоимость без налога
-        price_without_vat = Decimal('0')
+        total_without_vat = Decimal('0')
         if col7 and str(col7).strip():
             price_str = str(col7).replace("без", "").strip()
-            price_without_vat = parse_number(price_str)
+            total_without_vat = parse_number(price_str)
         
         # Обрабатываем сумму налога
         vat_amount = parse_number(col10)
@@ -135,19 +135,19 @@ def _parse_upd_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, Any]:
             total_with_vat = parse_number(total_str)
         
         # Вычисляем недостающие значения
-        if total_with_vat == 0 and price_without_vat > 0 and vat_amount > 0:
-            total_with_vat = price_without_vat + vat_amount
+        if total_with_vat == 0 and total_without_vat > 0 and vat_amount > 0:
+            total_with_vat = total_without_vat + vat_amount
         
-        if vat_amount == 0 and vat_rate != "Без НДС" and price_without_vat > 0:
+        if vat_amount == 0 and vat_rate != "Без НДС" and total_without_vat > 0:
             try:
                 rate_percent = Decimal(vat_rate.replace("%", "")) / Decimal('100')
-                vat_amount = price_without_vat * rate_percent
-                total_with_vat = price_without_vat + vat_amount
+                vat_amount = total_without_vat * rate_percent
+                total_with_vat = total_without_vat + vat_amount
             except:
                 pass
         
-        if price_without_vat == 0 and total_with_vat > 0 and vat_amount > 0:
-            price_without_vat = total_with_vat - vat_amount
+        if total_without_vat == 0 and total_with_vat > 0 and vat_amount > 0:
+            total_without_vat = total_with_vat - vat_amount
         
         # Округляем значения
         def round_decimal(value: Decimal) -> Decimal:
@@ -164,7 +164,7 @@ def _parse_upd_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, Any]:
                 "unit": unit,
                 "quantity": float(round_decimal(quantity)),
                 "price": float(round_decimal(price)),
-                "price_without_vat": float(round_decimal(price_without_vat)),
+                "total_without_vat": float(round_decimal(total_without_vat)),
                 "total_with_vat": float(round_decimal(total_with_vat)),
                 "vat_rate": vat_rate,
                 "vat_amount": float(round_decimal(vat_amount))
@@ -189,7 +189,7 @@ def _parse_upd_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, Any]:
         else:
             # Вычисляем итоги самостоятельно
             totals = {
-                "total_without_vat": sum(item["price_without_vat"] for item in table_items),
+                "total_without_vat": sum(item["total_without_vat"] for item in table_items),
                 "total_vat": sum(item["vat_amount"] for item in table_items),
                 "total_with_vat": sum(item["total_with_vat"] for item in table_items)
             }

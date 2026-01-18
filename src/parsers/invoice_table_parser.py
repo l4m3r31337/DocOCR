@@ -79,7 +79,7 @@ def _parse_invoice_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, An
             "unit": str(row.get("2", "")).strip(),
             "quantity": quantity,
             "price": price,
-            "price_without_vat": price_wo_vat,
+            "total_without_vat": price_wo_vat,
             "total_with_vat": total_with_vat,
             "vat_rate": vat_rate,
             "vat_amount": vat_amount
@@ -106,7 +106,7 @@ def _parse_invoice_table(self, table_data: List[Dict[str, Any]]) -> Dict[str, An
         else:
             # Если не нашли явную итоговую строку, вычисляем сами
             totals = {
-                "total_without_vat": sum(item["price_without_vat"] for item in table_items),
+                "total_without_vat": sum(item["total_without_vat"] for item in table_items),
                 "total_vat": sum(item["vat_amount"] for item in table_items),
                 "total_with_vat": sum(item["total_with_vat"] for item in table_items)
             }
