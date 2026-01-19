@@ -1,0 +1,23 @@
+#!/bin/bash
+
+INSTALL_DIR="/opt/doc-processor"
+
+# Проверка установки
+if [ ! -f "$INSTALL_DIR/run.py" ]; then
+    echo "Программа Doc-Processor не установлена."
+    echo "Запустите install.sh для установки."
+    exit 1
+fi
+
+# Переход в директорию установки
+cd "$INSTALL_DIR"
+
+# Проверка Tesseract
+if ! command -v tesseract &> /dev/null; then
+    echo "Ошибка: Tesseract не найден."
+    echo "Установите Tesseract OCR: sudo apt-get install tesseract-ocr"
+    exit 1
+fi
+
+# Запуск программы
+python3 run.py "$@"

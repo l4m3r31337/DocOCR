@@ -4,7 +4,7 @@ from typing import Dict, Any
 import logging
 from parsers import torg_12_header_parser, upd_header_parser, invoice_header_parser
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("DocProcessor")
 
 
 class DocumentParser:
@@ -53,7 +53,7 @@ class DocumentParser:
         Returns:
             Словарь с распарсенными данными из шапки
         """
-        logger.info(f"Парсим документ типа: {document_type} (только шапка)")
+        logger.debug(f"Парсим документ типа: {document_type}")
 
         if document_type not in self.parsers:
             logger.error(f"Неизвестный тип документа: {document_type}")
@@ -75,7 +75,7 @@ class DocumentParser:
         try:
             with open(filename, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-            logger.info(f"Данные сохранены в файл: {filename}")
+            logger.debug(f"Данные сохранены в файл: {filename}")
         except Exception as e:
             logger.error(f"Ошибка сохранения в файл {filename}: {e}")
             raise

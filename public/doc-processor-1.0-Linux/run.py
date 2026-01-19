@@ -46,7 +46,7 @@ def main():
         from src.cli import main as cli_main
         return cli_main()
     except ImportError:
-        print(f"Ошибка импорта")
+        print("Ошибка: Не удалось найти модули программы.")
         print("Установите зависимости: pip install -r requirements.txt")
         return 1
 
