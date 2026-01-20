@@ -95,7 +95,7 @@ def _parse_upd_header(self, text: str) -> Dict[str, Any]:
         if shipper_match:
             shipper_name = self._clean_text(shipper_match.group(1))
             result["shipper"]["name"] = shipper_name
-            if "он же" in shipper_name.lower():
+            if "он же" in shipper_name.lower() or "онже" in shipper_name.lower():
                 result["shipper"]["name"] = result["seller"]["name"]
                 result["shipper"]["address"] = result["seller"]["address"]
 
@@ -103,13 +103,30 @@ def _parse_upd_header(self, text: str) -> Dict[str, Any]:
         consignee_match = re.search(
             r'Грузополучатель.*?:(.+?)(?:\(4\)|\n|$)', text, re.IGNORECASE)
         if consignee_match:
-            result["consignee"]["name"] = self._clean_text(
-                consignee_match.group(1))
+            full_text = consignee_match.group(1).strip()
+    
+            # Способ 1: Разделяем по индексу (6 цифр)
+            index_match = re.search(r'(\d{6})', full_text)
+            if index_match:
+                idx_pos = index_match.start()
+        
+                # Имя - всё до индекса
+                consignee_name = full_text[:idx_pos].rstrip(', ')
+        
+                # Адрес - начиная с индекса
+                consignee_address = full_text[idx_pos:].strip()
+        
+                result["consignee"]["name"] = self._clean_text(consignee_name)
+                result["consignee"]["address"] = self._clean_text(consignee_address)
+            else:
+                # Если индекс не найден, используем всю строку как имя
+                result["consignee"]["name"] = self._clean_text(full_text)
+                result["consignee"]["address"] = ""
 
 
         # Основание (в УПД обычно есть)
         basis_match = re.search(
-            r'Основание[^:]*?(\d+)\s*от\s*(\d{2}\.\d{2}\.\d{4})', text, re.IGNORECASE)
+            r'Основание[^:]*?([\w\d/]+[^\s]*?)\s*от\s*(\d{2}\.\d{2}\.\d{4})', text, re.IGNORECASE)
         if basis_match:
             result["basis"]["number"] = basis_match.group(1)
             result["basis"]["date"] =  basis_match.group(2)

@@ -13,7 +13,7 @@ def _parse_invoice_header(self, text: str) -> Dict[str, Any]:
             "seller": {"name": "", "inn": "", "kpp": "", "address": ""},
             "buyer": {"name": "", "inn": "", "kpp": "", "address": ""},
             "shipper": {"name": "", "address": ""},
-            "consignee": {"name": ""},
+            "consignee": {"name": "", "address": ""},
             "document_info": {"number": "", "date": ""},
             "basis": "",
             "extraction_status": "success"
@@ -126,11 +126,58 @@ def _parse_invoice_header(self, text: str) -> Dict[str, Any]:
                         
 
             # Грузополучатель
-            consignee_match = re.search(
-                r'Грузополучатель и его адрес[:\s]+([^\n]+)', text, re.IGNORECASE)
-            if consignee_match:
-                consignee_name = consignee_match.group(1).strip()
-                result["consignee"]["name"] = consignee_name
+            block_match = re.search(
+                r'Грузополучатель и его адрес[:\s]+(.*?)(?=\n*Стоимость|\Z)',
+                text,
+                re.IGNORECASE | re.DOTALL
+            )
+
+            if block_match:
+                block_text = block_match.group(1).strip()
+    
+                # Удаляем ненужные строки
+                cleaned_text = re.sub(
+                    r'(Покупатель[^\n]*|Адрес[^\n]*|ИНН/КПП покупателя[^\n]*|Валюта[^\n]*|\n{2,})',
+                    '',
+                    block_text,
+                    flags=re.IGNORECASE
+                ).strip()
+    
+                # Разделяем на строки
+                lines = [line.strip() for line in cleaned_text.split('\n') if line.strip()]
+    
+                # Первая строка - название компании
+                if lines:
+                    name = re.sub(r'[,\s‚]+$', '', lines[0])
+                    result["consignee"]["name"] = name
+    
+                # Ищем строку с адресом
+                for line in lines:
+                    # Ищем почтовый индекс в строке (6 цифр)
+                    index_match = re.search(r'(\d{6})', line)
+                    if index_match:
+                        idx_pos = index_match.start()
+            
+                        # Если индекс не в начале строки
+                        if idx_pos > 0:
+                            # Всё до индекса добавляем к названию
+                            before_index = line[:idx_pos].rstrip(', ')
+                            if before_index:
+                                # Добавляем к существующему названию
+                                added =  " " + re.sub(r'[,\s‚]+$', '', before_index)
+                                result["consignee"]["name"] += added.rstrip()
+                
+                            # Адрес - всё начиная с индекса
+                            address_part = line[idx_pos:].strip()
+                            # Удаляем возможные запятые в начале
+                            address_part = re.sub(r'^[,\s]+', '', address_part)
+                            result["consignee"]["address"] = address_part
+                        else:
+                            # Если индекс в начале строки
+                            result["consignee"]["address"] = line.strip()
+                        break
+
+        
 
             # Основание (обычно в УПД, но может быть и в счете-фактуре)
             basis_match = re.search(
